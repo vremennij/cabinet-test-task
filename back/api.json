@@ -22,7 +22,7 @@
           "Безопасность"
         ],
         "summary": "Вход в систему",
-        "description": "Авторизовать пользователя по логину и паролю. В моковой базе добавьте двух пользователей: с ролью админа и без неё",
+        "description": "Авторизовать пользователя по логину и паролю",
         "operationId": "postLogin",
         "requestBody": {
           "required": true,
@@ -64,7 +64,7 @@
             }
           },
           "401": {
-            "desctiption": "Ошибка авторизации"
+            "description": "Ошибка авторизации"
           }
         }
       }
@@ -76,7 +76,7 @@
           "Заявка на проект - Внешняя заявка"
         ],
         "summary": "Возвращает все типы проектов (доступна всем пользователям)",
-        "description": "Просто список доступных типов проектов. В моковом наполнении базы добавьте пару типов проектов для демонстрации",
+        "description": "Просто список доступных типов проектов",
         "operationId": "getProjectDictionaryGetProjectTypes",
         "responses": {
           "200": {
@@ -124,6 +124,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Ошибка валидации или несуществующий typeId"
           }
         }
       }
@@ -204,7 +207,7 @@
             "description": "Успешно"
           },
           "400": {
-            "description": "Заявка находится не в статусе \"PENDING\""
+            "description": "Заявка находится не в статусе \"PENDING\" или ошибка валидации"
           },
           "404": {
             "description": "Заявка не найдена"
@@ -252,6 +255,94 @@
           },
           "403": {
             "description": "У пользователя нет роли администратора"
+          }
+        }
+      }
+    },
+    "/project/application/external/list": {
+      "get": {
+        "tags": [
+          "Каталог заявок"
+        ],
+        "summary": "Получить список внешних заявок (доступна пользователям с ролью \"ADMIN\")",
+        "description": "Получить список внешних заявок в системе",
+        "operationId": "getProjectApplicationExternalApplicationGetExternalApplications",
+        "parameters": [
+          {
+            "name": "active",
+            "in": "query",
+            "description": "Находится ли в статусе \"PENDING\"",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "nullable": false
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Поиск по названию заявки или ФИО инициатора",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": null,
+              "nullable": true
+            }
+          },
+          {
+            "name": "projectTypeId",
+            "in": "query",
+            "description": "Поиск по типу проекта",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": null,
+              "nullable": true
+            }
+          },
+          {
+            "name": "sortByDateUpdated",
+            "in": "query",
+            "description": "Если этот флаг передан, то нужно сортировать проекты в указанном порядке сортировки",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/SortType"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "nullable": false
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExternalApplicationsModel"
+                }
+              }
+            }
           }
         }
       }
@@ -450,6 +541,81 @@
           }
         },
         "type": "object"
+      },
+      "ExternalApplicationPreviewModel": {
+        "required": [
+          "externalApplicationId",
+          "projectName",
+          "typeName",
+          "initiator",
+          "organisationName",
+          "dateUpdated",
+          "status"
+        ],
+        "properties": {
+          "externalApplicationId": {
+            "title": "Id \u0432\u043d\u0435\u0448\u043d\u0435\u0439 \u0437\u0430\u044f\u0432\u043a\u0438",
+            "type": "integer"
+          },
+          "projectName": {
+            "title": "\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u043f\u0440\u043e\u0435\u043a\u0442\u0430",
+            "type": "string"
+          },
+          "typeName": {
+            "title": "\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u0442\u0438\u043f\u0430 \u043f\u0440\u043e\u0435\u043a\u0442\u0430",
+            "type": "string"
+          },
+          "initiator": {
+            "title": "\u0418\u043d\u0438\u0446\u0438\u0430\u0442\u043e\u0440 \u043f\u0440\u043e\u0435\u043a\u0442\u0430",
+            "type": "string"
+          },
+          "organisationName": {
+            "title": "\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u043e\u0440\u0433\u0430\u043d\u0438\u0437\u0430\u0446\u0438\u0438",
+            "type": "string"
+          },
+          "dateUpdated": {
+            "title": "\u0414\u0430\u0442\u0430 \u043e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u044f \u0437\u0430\u044f\u0432\u043a\u0438",
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ExternalApplicationStatus"
+          },
+          "rejectionMessage": {
+            "title": "\u041f\u0440\u0438\u0447\u0438\u043d\u0430 \u043e\u0442\u043a\u043b\u043e\u043d\u0435\u043d\u0438\u044f \u0437\u0430\u044f\u0432\u043a\u0438",
+            "type": "string",
+            "default": null,
+            "nullable": true
+          }
+        },
+        "type": "object"
+      },
+      "ExternalApplicationsModel": {
+        "required": [
+          "count",
+          "applications"
+        ],
+        "properties": {
+          "count": {
+            "title": "Количество заявок по фильтру без учёта limit",
+            "type": "integer"
+          },
+          "applications": {
+            "title": "\u0412\u043d\u0435\u0448\u043d\u0438\u0435 \u0437\u0430\u044f\u0432\u043a\u0438",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExternalApplicationPreviewModel"
+            }
+          }
+        },
+        "type": "object"
+      },
+      "SortType": {
+        "type": "string",
+        "enum": [
+          "ASC",
+          "DESC"
+        ]
       }
     },
     "securitySchemes": {
